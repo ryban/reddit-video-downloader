@@ -19,7 +19,7 @@ Added support for videos without audio
 
 It requires tkinter and clipboard.
 
-Videos that are crossposted will yeild a "'NoneType' object is not subscriptable"
+Videos that are crossposted will yield a "'NoneType' object is not subscriptable"
 
 Here is a screenshot to show you the wonderful GUI that comes with it :
 ![screenshot](https://i.imgur.com/NOkrFTZ.png)
