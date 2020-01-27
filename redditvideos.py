@@ -16,7 +16,7 @@ real_path = os.path.dirname(os.path.realpath(__file__))
 class RedditDownloader:
     def __init__(self):
         self.url = clipboard.paste()
-        if isinstance(self.url, str) and str(self.url).startswith("https://www.reddit.com"):
+        if isinstance(self.url, str) and (str(self.url).startswith("https://www.reddit.com") or str(self.url).startswith("https://old.reddit.com")):
             #download video directly, no ui
             self.reddit_downloader()
         else:
