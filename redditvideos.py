@@ -9,7 +9,6 @@ import sys
 import clipboard
 from urllib.request import urlopen, HTTPError
 import platform
-from moviepy.editor import *
 
 osys = platform.system()
 real_path = os.path.dirname(os.path.realpath(__file__))
