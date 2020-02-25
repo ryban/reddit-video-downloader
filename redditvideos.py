@@ -64,14 +64,14 @@ class RedditDownloader:
             json_url = self.url + ".json"
             data = requests.get(json_url, headers=self.headers).json()
             media_data = data[0]["data"]["children"][0]["data"]["media"]
-            self.title = data[0]["data"]["children"][0]["data"]["title"]
+            title = data[0]["data"]["children"][0]["data"]["title"]
 
             # sanitize title
             for char in string.punctuation:
-                self.title = self.title.replace(char, "")
+                title = title.replace(char, "")
 
-            self.video_path  = os.path.join(real_path,"Output",self.title)+".mp4"
-            self.folder_path = os.path.join(real_path,"Output")
+            self.video_path  = os.path.join(real_path, "Output", title)+".mp4"
+            self.folder_path = os.path.join(real_path, "Output")
             if not os.path.exists(self.folder_path):
                 os.makedirs(self.folder_path)
 
