@@ -9,6 +9,7 @@ import sys
 import clipboard
 from urllib.request import urlopen, HTTPError
 import platform
+import string
 
 osys = platform.system()
 real_path = os.path.dirname(os.path.realpath(__file__))
@@ -63,30 +64,27 @@ class RedditDownloader:
             json_url = self.url + ".json"
             data = requests.get(json_url, headers=self.headers).json()
             media_data = data[0]["data"]["children"][0]["data"]["media"]
-            title = data[0]["data"]["children"][0]["data"]["title"]
+            self.title = data[0]["data"]["children"][0]["data"]["title"]
 
             # sanitize title
-            invalid = """<>:"/\|?*.'"""
-            for char in invalid:
-                self.title = title.replace(char, "")
+            for char in string.punctuation:
+                self.title = self.title.replace(char, "")
 
             self.video_path  = os.path.join(real_path,"Output",self.title)+".mp4"
-            self.test_video_path  = os.path.join(real_path,"Output","2"+self.title)+".mp4"
             self.folder_path = os.path.join(real_path,"Output")
             if not os.path.exists(self.folder_path):
                 os.makedirs(self.folder_path)
 
             video_url = media_data["reddit_video"]["fallback_url"]
             audio_url = video_url.split("DASH_")[0] + "audio"
-
+            print("Video URL: ", video_url)
             # audio may not exist
             try:
                 urlopen(audio_url)
             except HTTPError as err:
                 if err.code == 403:
                     # no audio, download video to Output directly
-                    os.system("curl -o {} {}".format(self.video_path, video_url))
-                    messagebox.showinfo("Success", "{} was downloaded.".format(self.url))
+                    os.system("curl -o \"{}\" \"{}\"".format(self.video_path, video_url))
                     return
 
             os.system("curl -o video.mp4 {}".format(video_url))
@@ -102,7 +100,6 @@ class RedditDownloader:
             else:
                 messagebox.showerror("Error", "{} is not supported".format(osys))
                 return
-            messagebox.showinfo("Success", "{} was downloaded.".format(self.url))
         except Exception as err:
             messagebox.showerror("Error", err)
             e_type, exc_obj, exc_tb = sys.exc_info()
