@@ -63,14 +63,9 @@ class RedditDownloader:
         if osys == "Windows":
             os.system("start " + self.folder_path)
         elif osys == "Linux":
-            # leaving this line in just in the case the all in one os.system() call does not work
-            # os.system("ffmpeg -y -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental '"+self.video_path+"'")
             os.system("xdg-open " + self.folder_path)
         elif osys == "Darwin":
-            # this might work
             os.system("open " + self.folder_path)
-        else:
-            messagebox.showerror("Error", "{} is not supported".format(osys))
 
     def reddit_downloader(self):
         try:

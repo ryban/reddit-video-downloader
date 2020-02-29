@@ -11,13 +11,23 @@ Linux requirements: Supported applications for clipboard feature (xclip or xsel)
 
 Windows requirements: Windows 10 build 17063 required for native curl, ffmpeg bin path added to PATH variable
 
+MacOS requirements: Brew allows easy install of ffmpeg/xclip (xclip also requires xquartz)
+
+`brew cask install xquartz`
+
+`brew install xclip ffmpeg`
+
+MacOS issues: UI will load, buttons may not render properly, but app still works for now
+
+```% python redditvideos.py
+DEPRECATION WARNING: The system version of Tk is deprecated and may be removed in a future release. Please don't rely on it. Set TK_SILENCE_DEPRECATION=1 to suppress this warning.```
+___
+
 Added more detailed exception handling when debugging through terminal (also to prevent application hang)
 
-Added error and success notifications
+Added error notice
 
 Added support for videos without audio
-
-It requires tkinter and clipboard.
 
 Videos that are crossposted will yield a "'NoneType' object is not subscriptable"
 
