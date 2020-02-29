@@ -59,6 +59,19 @@ class RedditDownloader:
         self.url = requests.get(self.url, headers=self.headers).url
         self.reddit_downloader()
 
+    def open_output_dir(self):
+        if osys == "Windows":
+            os.system("start " + self.folder_path)
+        elif osys == "Linux":
+            # leaving this line in just in the case the all in one os.system() call does not work
+            # os.system("ffmpeg -y -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental '"+self.video_path+"'")
+            os.system("xdg-open " + self.folder_path)
+        elif osys == "Darwin":
+            # this might work
+            os.system("open " + self.folder_path)
+        else:
+            messagebox.showerror("Error", "{} is not supported".format(osys))
+
     def reddit_downloader(self):
         try:
             json_url = self.url + ".json"
@@ -78,28 +91,23 @@ class RedditDownloader:
             video_url = media_data["reddit_video"]["fallback_url"]
             audio_url = video_url.split("DASH_")[0] + "audio"
             print("Video URL: ", video_url)
-            # audio may not exist
+            # add ffmpeg bin directory to PATH environment variable or full path to binary when ffmpeg is called with os.system()
             try:
                 urlopen(audio_url)
             except HTTPError as err:
                 if err.code == 403:
-                    # no audio, download video to Output directly
-                    os.system("curl -o \"{}\" \"{}\"".format(self.video_path, video_url))
+                    # no audio, download video only
+                    os.system("curl -o video.mp4 {}".format(video_url))
+                    os.system("ffmpeg -y -i video.mp4 -c:v copy -strict experimental \"{}\"".format(self.video_path))
+                    self.open_output_dir()
                     return
 
             os.system("curl -o video.mp4 {}".format(video_url))
             os.system("curl -o audio.wav {}".format(audio_url))
 
-            if osys == "Windows":
-                # add ffmpeg bin directory to PATH environment variable or full path to binary in the next line
-                os.system("ffmpeg.exe -y -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental \""+self.video_path+"\"")
-                os.system("start " + self.folder_path)
-            elif osys == "Linux":
-                os.system("ffmpeg -y -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental '"+self.video_path+"'")
-                os.system("xdg-open " + self.folder_path)
-            else:
-                messagebox.showerror("Error", "{} is not supported".format(osys))
-                return
+            os.system("ffmpeg -y -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental \"{}\"".format(self.video_path))
+            self.open_output_dir()
+            return
         except Exception as err:
             messagebox.showerror("Error", err)
             e_type, exc_obj, exc_tb = sys.exc_info()
