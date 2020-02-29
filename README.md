@@ -19,7 +19,8 @@ MacOS requirements: Brew allows easy install of ffmpeg/xclip (xclip also require
 
 MacOS issues: UI will load, buttons may not render properly, but app still works for now
 
-```% python redditvideos.py
+```
+% python redditvideos.py
 DEPRECATION WARNING: The system version of Tk is deprecated and may be removed in a future release. Please don't rely on it. Set TK_SILENCE_DEPRECATION=1 to suppress this warning.
 ```
 ___
