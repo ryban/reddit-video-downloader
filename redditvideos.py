@@ -74,6 +74,7 @@ class RedditDownloader:
 
     def reddit_downloader(self):
         try:
+            self.download_completed = True
             json_url = self.url + ".json"
             data = requests.get(json_url, headers=self.headers).json()
             media_data = data[0]["data"]["children"][0]["data"]["media"]
