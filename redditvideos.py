@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # Windows 10 build 17063 required for native curl
-from tkinter import Entry,Button,Tk,messagebox
+from tkinter import Entry, Button, Tk, messagebox
 import tkinter.font as tkFont
 import tkinter.ttk
 import requests
 import os
+import pathlib
+import subprocess
 import sys
 import clipboard
 from urllib.request import urlopen, HTTPError
@@ -12,7 +14,8 @@ import platform
 import string
 
 osys = platform.system()
-real_path = os.path.dirname(os.path.realpath(__file__))
+real_path = pathlib.Path(__file__).parent.resolve()
+
 
 class RedditDownloader:
     def __init__(self):
@@ -20,9 +23,11 @@ class RedditDownloader:
         self.download_completed = False
         # use UA headers to prevent 429 error
         self.headers = {
-                "User-Agent": "My User Agent 1.0",
-                "From": "testyouremail@domain.com"
+            "User-Agent": "My User Agent 1.0",
+            "From": "testyouremail@domain.com"
         }
+
+    def run(self):
         self.determine_url()
         if not self.download_completed:
             #setup UI
@@ -55,17 +60,20 @@ class RedditDownloader:
             self.resolve_vreddit_url()
 
     def resolve_vreddit_url(self):
-        
         self.url = requests.get(self.url, headers=self.headers).url
         self.reddit_downloader()
 
-    def open_output_dir(self):
+    def open_output_dir(self, path):
         if osys == "Windows":
-            os.system("start " + self.folder_path)
+            # Calling explorer directly was giving me a 116 error code for some reason
+            # With explorer we could use /select to make the new file highlighted
+            os.startfile(str(path), 'explore')
+            return
         elif osys == "Linux":
-            os.system("xdg-open " + self.folder_path)
+            opener = "xdg-open"
         elif osys == "Darwin":
-            os.system("open " + self.folder_path)
+            opener = "open"
+        subprocess.check_call([opener, str(path)])
 
     def reddit_downloader(self):
         try:
@@ -79,31 +87,35 @@ class RedditDownloader:
             for char in string.punctuation:
                 title = title.replace(char, "")
 
-            self.video_path  = os.path.join(real_path, "Output", title)+".mp4"
-            self.folder_path = os.path.join(real_path, "Output")
-            if not os.path.exists(self.folder_path):
-                os.makedirs(self.folder_path)
+            output_dir = real_path / "Output"
+            video_path = (output_dir / title).with_suffix(".mp4")
+            if not output_dir.exists():
+                output_dir.mkdir(parents=True)
 
             video_url = media_data["reddit_video"]["fallback_url"]
             audio_url = video_url.split("DASH_")[0] + "audio"
             print("Video URL: ", video_url)
-            # add ffmpeg bin directory to PATH environment variable or full path to binary when ffmpeg is called with os.system()
+            inputs = ["-i", "video.mp4"]
             try:
                 urlopen(audio_url)
+                inputs.extend(["-i", "audio.wav"])
             except HTTPError as err:
                 if err.code == 403:
-                    # no audio, download video only
-                    os.system("curl -o video.mp4 {}".format(video_url))
-                    os.system("ffmpeg -y -i video.mp4 -c:v copy -strict experimental \"{}\"".format(self.video_path))
-                    self.open_output_dir()
-                    return
+                    audio_url = None
 
-            os.system("curl -o video.mp4 {}".format(video_url))
-            os.system("curl -o audio.wav {}".format(audio_url))
+            subprocess.check_call(["curl", "-o", "video.mp4", video_url])
+            if audio_url:
+                subprocess.check_call(["curl", "-o", "audio.wav", audio_url])
 
-            os.system("ffmpeg -y -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental \"{}\"".format(self.video_path))
-            self.open_output_dir()
-            return
+            # add ffmpeg bin directory to PATH environment variable or full path to binary when ffmpeg is called with os.system()
+            subprocess.check_call(["ffmpeg", "-y"] + inputs + ["-c:v", "copy", "-strict", "experimental", str(video_path)])
+            video_file = real_path / "video.mp4"
+            audio_file = real_path / "audio.wav"
+            print("Removing {}".format(video_file))
+            video_file.unlink()
+            print("Removing {}".format(audio_file))
+            audio_file.unlink()
+            self.open_output_dir(output_dir)
         except Exception as err:
             messagebox.showerror("Error", err)
             e_type, exc_obj, exc_tb = sys.exc_info()
@@ -111,8 +123,7 @@ class RedditDownloader:
 
     def quit(self):
         self.win.destroy()
-        return
 
 
 if __name__ == "__main__":
-    RedditDownloader()
+    RedditDownloader().run()
